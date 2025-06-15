@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 from backend.mixins import TimeStampMixin
@@ -18,7 +19,12 @@ class Advertisement(TimeStampMixin):
         using=None,
         update_fields=None,
     ):
-        super().save()
-        chats = Chat.objects.all()
-        for chat in chats:
-            Message.objects.create(event=Message.EventType.advertisement, title=self.title, chat=chat)
+        state = self._state.adding
+        super().save(*args)
+        if state:
+            users = User.objects.all()
+            for user in users:
+                chat = Chat.objects.filter(user=user).first()
+                if not chat:
+                    chat = Chat.objects.create(user=user)
+                    Message.objects.create(event=Message.EventType.advertisement, title=self.title, chat=chat)
