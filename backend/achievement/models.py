@@ -24,8 +24,10 @@ class AchievementUser(models.Model):
         using=None,
         update_fields=None,
     ):
-        super().save()
-        chat = Chat.objects.filter(user=self.user).first()
-        if not chat:
-            chat = Chat.objects.create(user=self.user)
-        Message.objects.create(event=Message.EventType.achievement, title=self.achievement.title, chat=chat)
+        state = self._state.adding
+        super().save(*args)
+        if state:
+            chat = Chat.objects.filter(user=self.user).first()
+            if not chat:
+                chat = Chat.objects.create(user=self.user)
+            Message.objects.create(event=Message.EventType.achievement, title=self.achievement.title, chat=chat)

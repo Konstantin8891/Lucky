@@ -18,8 +18,10 @@ class Note(TimeStampMixin):
         using=None,
         update_fields=None,
     ):
+        state = self._state.adding
         super().save()
-        chat = Chat.objects.filter(user=self.user).first()
-        if not chat:
-            chat = Chat.objects.create(user=self.user)
-        Message.objects.create(event=Message.EventType.note, title=self.title, chat=chat)
+        if state:
+            chat = Chat.objects.filter(user=self.user).first()
+            if not chat:
+                chat = Chat.objects.create(user=self.user)
+            Message.objects.create(event=Message.EventType.note, title=self.title, chat=chat)
